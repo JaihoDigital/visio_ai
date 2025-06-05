@@ -8,3 +8,4 @@ PyPDF2==3.0.1
 docx2txt==0.8
 numpy==1.26.4
 fpdf==1.7.2
+python-docx==3.11.4
