@@ -8,8 +8,6 @@ import pickle
 import base64
 import io
 import plotly.graph_objects as go
-import viz_report
-import word_cloud
 
 # Import ML libraries
 from sklearn.model_selection import train_test_split
