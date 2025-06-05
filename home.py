@@ -23,7 +23,7 @@ from sklearn.naive_bayes import GaussianNB # For classification
 from sklearn.metrics import mean_squared_error, r2_score, accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 import numpy as np # For numerical operations, especially with metrics
 
-st.set_page_config("Visio AI", layout='wide')
+st.set_page_config("Visio AI", page_icon="images/favicon.png", layout='wide')
 
 st.markdown("<h1 style='text-align: center; color: #4A90E2;'>📊 VISIO AI</h1>", unsafe_allow_html=True)
 st.markdown("<h4 style='text-align: center; color: orange;'>Machine Learning and Data Analysis Platform</h4>", unsafe_allow_html=True)
