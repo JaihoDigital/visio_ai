@@ -65,24 +65,24 @@ with col1:
         webbrowser.open_new_tab(about_url)
 
 with col2:
-    helper_url = "https://www.google.com"
-    if st.button('Helper'):
-        webbrowser.open_new_tab(helper_url)
+    guide_url = "https://www.google.com"
+    if st.button('Guide'):
+        webbrowser.open_new_tab(guide_url)
 
 with col3:
-    joinus_url = "https://www.google.com"
+    docs_url = "https://www.google.com"
+    if st.button('Docs'):
+        webbrowser.open_new_tab(docs_url)
+
+with col4:
+    joinus_url = "https://jaiho-labs.onrender.com"
     if st.button('Join Us'):
         webbrowser.open_new_tab(joinus_url)
 
-with col4:
-    jaiho_url = "https://jaiho-labs.onrender.com"
-    if st.button('Jaiho Labs'):
-        webbrowser.open_new_tab(jaiho_url)
-
 with col5:
-    source_code_url = "https://www.google.com"
-    if st.button('Source Code'):
-        webbrowser.open_new_tab(source_code_url)
+    elite_access = "https://www.google.com"
+    if st.button('Get Elite Access'):
+        webbrowser.open_new_tab(elite_access)
 
 #-------------------------------------------------#
 
