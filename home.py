@@ -8,6 +8,7 @@ import pickle
 import base64
 import io
 import plotly.graph_objects as go
+import viz_ai_img
 
 # Import ML libraries
 from sklearn.model_selection import train_test_split
@@ -721,6 +722,18 @@ if st.session_state.updated_df is not None and st.session_state.trained_model is
 else:
     st.info("Upload a dataset and train a model to see results and test your own values.")
 
+if st.session_state.current_page == "viz_ai_img":
+    viz_ai_img.analyze_image_ui()
+
+elif st.session_state.current_page == "word_cloud":
+    # Make sure to import your word_cloud module if you have it
+    # word_cloud.generate_word_cloud()
+    st.write("WordCloud Page (Implement logic here)")
+
+elif st.session_state.current_page == "generate_report":
+    # Make sure to import your viz_report module if you have it
+    # viz_report.generate_report()
+    st.write("Viz Report Page (Implement logic here)")
 
 # Add custom CSS for better styling
 st.markdown("""
