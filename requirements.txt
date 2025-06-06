@@ -6,4 +6,5 @@ matplotlib
 wordcloud
 scikit-learn
 numpy
+requests
 
