@@ -60,27 +60,27 @@ if 'scaler' not in st.session_state:
 # Navigation Bar
 col1, col2, col3, col4, col5 = st.columns((1, 1, 1, 1, 1))
 with col1:
-    about_url = "https://www.google.com"
+    about_url = "https://jaiho-labs.onrender.com/pages/products_resources/docs/visio_ai_docs/visio_about.html"
     if st.button('About'):
         webbrowser.open_new_tab(about_url)
 
 with col2:
-    guide_url = "https://www.google.com"
+    guide_url = "https://jaiho-labs.onrender.com/pages/products_resources/docs/visio_ai_docs/visio_helper.html"
     if st.button('Guide'):
         webbrowser.open_new_tab(guide_url)
 
 with col3:
-    docs_url = "https://www.google.com"
+    docs_url = "https://jaiho-labs.onrender.com/pages/products_resources/docs/visio_ai_docs/visio_docs.html"
     if st.button('Docs'):
         webbrowser.open_new_tab(docs_url)
 
 with col4:
-    joinus_url = "https://jaiho-labs.onrender.com"
+    joinus_url = "https://jaiho-labs.onrender.com/pages/products_resources/docs/visio_ai_docs/visio_join.html"
     if st.button('Join Us'):
         webbrowser.open_new_tab(joinus_url)
 
 with col5:
-    elite_access = "https://www.google.com"
+    elite_access = "https://jaiho-labs.onrender.com/pages/products_resources/docs/visio_ai_docs/get_elite_access.html"
     if st.button('Get Elite Access'):
         webbrowser.open_new_tab(elite_access)
 
