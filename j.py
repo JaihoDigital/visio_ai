@@ -8,7 +8,12 @@ import pickle
 import base64
 import io
 import plotly.graph_objects as go
+#import viz_report
 import viz_ai_img
+import word_cloud
+import notepad_lite
+import calculator
+
 
 # Import ML libraries
 from sklearn.model_selection import train_test_split
@@ -56,6 +61,8 @@ if 'model_metrics' not in st.session_state:
     st.session_state.model_metrics = None
 if 'scaler' not in st.session_state:
     st.session_state.scaler = None
+if 'label_encoders' not in st.session_state:
+    st.session_state.label_encoders = {}
 
 
 # Navigation Bar
@@ -63,27 +70,29 @@ col1, col2, col3, col4, col5 = st.columns((1, 1, 1, 1, 1))
 with col1:
     about_url = "https://jaiho-labs.onrender.com/pages/products_resources/docs/visio_ai_docs/visio_about.html"
     if st.button('About'):
-        webbrowser.open_new_tab(about_url)
+        st.markdown("check out this [link](%s)" % about_url)
+        
+        #webbrowser.open_new_tab(about_url)
 
 with col2:
     guide_url = "https://jaiho-labs.onrender.com/pages/products_resources/docs/visio_ai_docs/visio_helper.html"
     if st.button('Guide'):
-        webbrowser.open_new_tab(guide_url)
-
+        st.markdown("check out this [link](%s)" % guide_url)
+        
 with col3:
     docs_url = "https://jaiho-labs.onrender.com/pages/products_resources/docs/visio_ai_docs/visio_docs.html"
     if st.button('Docs'):
-        webbrowser.open_new_tab(docs_url)
+        st.markdown("check out this [link](%s)" % docs_url)
 
 with col4:
     joinus_url = "https://jaiho-labs.onrender.com/pages/products_resources/docs/visio_ai_docs/visio_join.html"
     if st.button('Join Us'):
-        webbrowser.open_new_tab(joinus_url)
+        st.markdown("check out this [link](%s)" % joinus_url)
 
 with col5:
     elite_access = "https://jaiho-labs.onrender.com/pages/products_resources/docs/visio_ai_docs/get_elite_access.html"
     if st.button('Get Elite Access'):
-        webbrowser.open_new_tab(elite_access)
+        st.markdown("check out this [link](%s)" % elite_access)
 
 #-------------------------------------------------#
 
@@ -129,77 +138,113 @@ with col11:
                     test_size = st.slider("Select Test Set Size:", min_value=0.1, max_value=0.5, value=0.2, step=0.05, key="test_size_slider")
                     random_state = st.number_input("Random State (for reproducibility):", value=42, step=1, key="random_state_input")
                     
-                    # Use only selected features
-                    features = st.session_state.updated_df[feature_columns]
-                    target = st.session_state.updated_df[target_column]
-
-                    # Handle categorical features by encoding
-                    for col in features.select_dtypes(include=['object', 'bool']).columns:
-                        le = LabelEncoder()
-                        features[col] = le.fit_transform(features[col].astype(str))
-
-                    # Handle numerical features by scaling
-                    numerical_cols = features.select_dtypes(include=['number']).columns
-                    if not numerical_cols.empty:
-                        scaler = StandardScaler()
-                        features[numerical_cols] = scaler.fit_transform(features[numerical_cols])
-                        st.session_state.scaler = scaler # Save the scaler
-
                     try:
+                        # Create a copy of the data for processing
+                        features_df = st.session_state.updated_df[feature_columns].copy()
+                        target_series = st.session_state.updated_df[target_column].copy()
+
+                        # Handle categorical features by encoding
+                        st.session_state.label_encoders = {}
+                        for col in features_df.select_dtypes(include=['object', 'bool']).columns:
+                            le = LabelEncoder()
+                            features_df[col] = le.fit_transform(features_df[col].astype(str))
+                            st.session_state.label_encoders[col] = le
+
+                        # Handle target column encoding for classification
+                        if st.session_state.problem_type == 'classification' and target_series.dtype == 'object':
+                            target_le = LabelEncoder()
+                            target_series = target_le.fit_transform(target_series.astype(str))
+                            st.session_state.target_label_encoder = target_le
+
+                        # Handle numerical features by scaling
+                        numerical_cols = features_df.select_dtypes(include=['number']).columns
+                        if not numerical_cols.empty:
+                            scaler = StandardScaler()
+                            features_df[numerical_cols] = scaler.fit_transform(features_df[numerical_cols])
+                            st.session_state.scaler = scaler
+
+                        # Split the data
                         X_train, X_test, y_train, y_test = train_test_split(
-                            features, target, test_size=test_size, random_state=random_state,
-                            stratify=target if st.session_state.problem_type == 'classification' else None
+                            features_df, target_series, test_size=test_size, random_state=random_state,
+                            stratify=target_series if st.session_state.problem_type == 'classification' else None
                         )
+                        
                         st.session_state.X_train = X_train
                         st.session_state.X_test = X_test
                         st.session_state.y_train = y_train
                         st.session_state.y_test = y_test
+                        
                         st.success(f"Data split successfully! Training: {len(X_train)} samples, Testing: {len(X_test)} samples.")
 
                         st.markdown("---")
                         st.markdown("#### 4. Select Machine Learning Algorithm")
 
                         if st.session_state.problem_type == 'classification':
-                            algo_options = {
-                                "Logistic Regression": LogisticRegression(random_state=random_state),
-                                "Decision Tree Classifier": DecisionTreeClassifier(random_state=random_state),
-                                "Random Forest Classifier": RandomForestClassifier(random_state=random_state),
-                                "Support Vector Classifier (SVC)": SVC(random_state=random_state),
-                                "K-Nearest Neighbors Classifier": KNeighborsClassifier(),
-                                "Gaussian Naive Bayes": GaussianNB()
-                            }
-                            algo_name = st.selectbox("Choose a Classification Algorithm:", list(algo_options.keys()), key="classification_algo_select")
-                            selected_algo = algo_options.get(algo_name)
+                            algo_options = [
+                                "Logistic Regression",
+                                "Decision Tree Classifier",
+                                "Random Forest Classifier",
+                                "Support Vector Classifier (SVC)",
+                                "K-Nearest Neighbors Classifier",
+                                "Gaussian Naive Bayes"
+                            ]
+                            algo_name = st.selectbox("Choose a Classification Algorithm:", algo_options, key="classification_algo_select")
 
                         elif st.session_state.problem_type == 'regression':
-                            algo_options = {
-                                "Linear Regression": LinearRegression(),
-                                "Decision Tree Regressor": DecisionTreeRegressor(random_state=random_state),
-                                "Random Forest Regressor": RandomForestRegressor(random_state=random_state),
-                                "Support Vector Regressor (SVR)": SVR(),
-                                "K-Nearest Neighbors Regressor": KNeighborsRegressor()
-                            }
-                            algo_name = st.selectbox("Choose a Regression Algorithm:", list(algo_options.keys()), key="regression_algo_select")
-                            selected_algo = algo_options.get(algo_name)
+                            algo_options = [
+                                "Linear Regression",
+                                "Decision Tree Regressor",
+                                "Random Forest Regressor",
+                                "Support Vector Regressor (SVR)",
+                                "K-Nearest Neighbors Regressor"
+                            ]
+                            algo_name = st.selectbox("Choose a Regression Algorithm:", algo_options, key="regression_algo_select")
                         else:
                             st.warning("Please define target column and problem type to select an algorithm.")
-                            selected_algo = None
+                            algo_name = None
 
-                        if selected_algo:
+                        if algo_name:
                             st.info(f"Selected Algorithm: **{algo_name}**")
-                            st.session_state.selected_algo = selected_algo
                             st.session_state.selected_algo_name = algo_name
+                            
                             st.markdown("---")
                             if st.button("🚀 Train Model"):
                                 if st.session_state.X_train is not None and st.session_state.y_train is not None:
                                     try:
-                                        with st.spinner(f"Training {st.session_state.selected_algo_name}..."):
-                                            st.session_state.selected_algo.fit(st.session_state.X_train, st.session_state.y_train)
-                                        st.session_state.trained_model = st.session_state.selected_algo
-                                        st.success(f"Model **{st.session_state.selected_algo_name}** trained successfully!")
+                                        # Create model instance based on selection
+                                        if algo_name == "Logistic Regression":
+                                            model = LogisticRegression(random_state=random_state, max_iter=1000)
+                                        elif algo_name == "Decision Tree Classifier":
+                                            model = DecisionTreeClassifier(random_state=random_state)
+                                        elif algo_name == "Random Forest Classifier":
+                                            model = RandomForestClassifier(random_state=random_state, n_estimators=100)
+                                        elif algo_name == "Support Vector Classifier (SVC)":
+                                            model = SVC(random_state=random_state)
+                                        elif algo_name == "K-Nearest Neighbors Classifier":
+                                            model = KNeighborsClassifier()
+                                        elif algo_name == "Gaussian Naive Bayes":
+                                            model = GaussianNB()
+                                        elif algo_name == "Linear Regression":
+                                            model = LinearRegression()
+                                        elif algo_name == "Decision Tree Regressor":
+                                            model = DecisionTreeRegressor(random_state=random_state)
+                                        elif algo_name == "Random Forest Regressor":
+                                            model = RandomForestRegressor(random_state=random_state, n_estimators=100)
+                                        elif algo_name == "Support Vector Regressor (SVR)":
+                                            model = SVR()
+                                        elif algo_name == "K-Nearest Neighbors Regressor":
+                                            model = KNeighborsRegressor()
+                                        
+                                        with st.spinner(f"Training {algo_name}..."):
+                                            model.fit(st.session_state.X_train, st.session_state.y_train)
+                                        
+                                        st.session_state.trained_model = model
+                                        st.success(f"Model **{algo_name}** trained successfully!")
 
-                                        y_pred = st.session_state.trained_model.predict(st.session_state.X_test)
+                                        # Calculate metrics
+                                        y_pred = model.predict(st.session_state.X_test)
                                         metrics = {}
+                                        
                                         if st.session_state.problem_type == 'classification':
                                             metrics['Accuracy'] = accuracy_score(st.session_state.y_test, y_pred)
                                             metrics['Precision'] = precision_score(st.session_state.y_test, y_pred, average='weighted', zero_division=0)
@@ -209,10 +254,13 @@ with col11:
                                         elif st.session_state.problem_type == 'regression':
                                             metrics['Mean Squared Error'] = mean_squared_error(st.session_state.y_test, y_pred)
                                             metrics['R2 Score'] = r2_score(st.session_state.y_test, y_pred)
+                                        
                                         st.session_state.model_metrics = metrics
                                         st.rerun()
+                                        
                                     except Exception as e:
                                         st.error(f"Error training model: {e}")
+                                        st.error("Please check your data for any issues (NaN values, incompatible data types, etc.)")
                                 else:
                                     st.warning("Please split the data first before training the model.")
                         else:
@@ -415,7 +463,7 @@ with st.sidebar:
         st.rerun()
 
     if st.button("📝 Note -- Lite"):
-        st.session_state.current_page = "notepad_1"
+        st.session_state.current_page = "note_lite"
         st.rerun()
 
     if st.button("😶‍🌫️ WordCloud"):
@@ -437,6 +485,10 @@ with st.sidebar:
     if st.button("📄 Viz Report"):
         st.session_state.current_page = "generate_report"
         st.rerun()
+
+    st.markdown("<hr>",unsafe_allow_html=True)
+    st.markdown("### <center>Other Products</center>", unsafe_allow_html=True)
+    
 
 #---------------------------------------------------------------#
 
@@ -461,6 +513,7 @@ with col_main_left:
             st.session_state.trained_model = None
             st.session_state.model_metrics = None
             st.session_state.scaler = None
+            st.session_state.label_encoders = {}
 
 
             st.success("✅ File uploaded successfully!")
@@ -727,12 +780,18 @@ if st.session_state.current_page == "viz_ai_img":
 
 elif st.session_state.current_page == "word_cloud":
     # Make sure to import your word_cloud module if you have it
-    # word_cloud.generate_word_cloud()
-    st.write("WordCloud Page (Implement logic here)")
+    word_cloud.render_word_cloud_page()
+
+elif st.session_state.current_page == "note_lite":
+    notepad_lite.render_notepad()
+
+elif st.session_state.current_page == "calculator":
+    calculator.render_calculator()
 
 elif st.session_state.current_page == "generate_report":
     # Make sure to import your viz_report module if you have it
     # viz_report.generate_report()
+    #viz_report.render_report_page()
     st.write("Viz Report Page (Implement logic here)")
 
 # Add custom CSS for better styling
@@ -784,6 +843,8 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+
 
 st.markdown("""
     <div style="position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; background-color: ; padding: 10px;">

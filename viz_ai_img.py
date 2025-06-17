@@ -91,6 +91,15 @@ def analyze_image_ui():
                 st.markdown("---")
                 st.subheader("Analysis Result:")
                 st.markdown(ai_response)
+                # --- ADD THIS BLOCK ---
+                # Save results to session state for the report
+                st.session_state['viz_ai_img_result'] = {
+                    "image": image,  # The PIL Image object
+                    "prompt": prompt_text,
+                    "analysis": ai_response,
+                    "model": model_selection
+                }
+                st.success("✅ Analysis saved to the session report.")
 
             except requests.exceptions.HTTPError as http_err:
                 st.error(f"HTTP error occurred: {http_err} - {response.text}")
