@@ -28,9 +28,9 @@
 }
 
 /* Hide Streamlit Elements */
+/* Header visible for sidebar toggle */
 header[data-testid="stHeader"] {
-    visibility: hidden;
-    height: 0px;
+    background-color: transparent;
 }
 
 footer {
