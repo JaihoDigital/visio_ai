@@ -1,2 +1,16 @@
 raw
 .streamlit
+__pycache__
+.devcontainer
+build
+dist
+images
+venv
+models
+Docs.html
+j.__pycache__
+j.__py
+viz_ai_img.__py
+viz_report.py
+Docs.html
+LICENSE
